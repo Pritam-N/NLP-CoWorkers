@@ -8,7 +8,6 @@ import tensorflow as tf
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
 text = input("Enter the text for prediction: ") 
-count = 5
 model = GPT2LMHeadModel.from_pretrained('gpt2')
 model.eval()
 
@@ -28,18 +27,21 @@ predictions[0][0][0]
 
 # Get the predicted next sub-word
 sorted_length, sorted_index = torch.sort(predictions[0 ,-1, :], dim = 0, descending=True)
-
 new_sentence_order = sorted_index.tolist()
 
-for i in range(0, count): 
-    predicted_index = new_sentence_order[i]
-    predicted_text = tokenizer.decode(indexed_tokens + [predicted_index])
-    text =  predicted_text
-    list.append(text)
+predicted_index = new_sentence_order[0]
+predicted_text = tokenizer.decode(indexed_tokens + [predicted_index])
+text =  predicted_text
+list.append(text)
 
+stopWords =[',', '!', '.', '?', '/'];
 
-for i in range(0, count ): 
-    indexed_tokens = tokenizer.encode(list[i])
+#def getCompleteSentence(text,stopwords):
+countwords = 0    
+
+while(1): 
+    countwords = countwords + 1
+    indexed_tokens = tokenizer.encode(list[0])
     tokens_tensor = torch.tensor([indexed_tokens])
     tokens_tensor = tokens_tensor.to('cuda')
     model.to('cuda')
@@ -50,6 +52,10 @@ for i in range(0, count ):
             
     predicted_index = torch.argmax(predictions[0, -1, :]).item()
     predicted_text = tokenizer.decode(indexed_tokens + [predicted_index])
-    list[i] = predicted_text
+    list[0] = predicted_text
+    if any(predicted_text.endswith(s) for s in stopWords):
+        break;
+    if(countwords >= 10 ):
+        break;
 
 print(list[0])
